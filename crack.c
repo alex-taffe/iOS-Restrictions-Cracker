@@ -72,6 +72,7 @@ void* crackSection(void* arg){
 
 		if(strcmp(globalHash, b64) == 0){
 			printf("The code is: %s\n", passcode); 
+			exit(0);
 		}
     }
 
@@ -121,4 +122,5 @@ void crackCode(const char *hash, const char *salt, char *code, char *error){
 	for(int i = 0; i < cores; i++){
 		pthread_join(thread[i], NULL);
 	}
+	printf("Code note found. Verify that you have entered the correct hash and salt\n");
 }
