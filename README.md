@@ -31,3 +31,6 @@ Ex (will yield a code of 1):
 - Improve code documentation and commenting
 - <s>Remove debug flags from production build files</s>
 - <s>Add -O3 flag to gcc for production builds to speed up execution</s>
+- Add make install action
+- Add configure script
+- Add automake support
