@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <pthread.h>
+#include <sys/time.h>
 #include "b64.h"
 #include "fastpbkdf2.h"
 
@@ -31,6 +32,7 @@ struct s_threadId {
 
 const char *globalHash;
 char *globalSalt;
+struct timeval start, end;
 
 
 void* crackSection(void* arg){
@@ -71,7 +73,9 @@ void* crackSection(void* arg){
 		char *b64 = b64_encode(out, 20);
 
 		if(strcmp(globalHash, b64) == 0){
-			printf("The code is: %s\n", passcode); 
+			gettimeofday(&end, NULL);
+			double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+			printf("The code is: %s\nCalculated in %.2f seconds\n", passcode, delta); 
 			exit(0);
 		}
     }
@@ -79,6 +83,7 @@ void* crackSection(void* arg){
 }
 
 void crackCode(const char *hash, const char *salt, char *code, char *error){
+	gettimeofday(&start, NULL);
 
 	globalHash = hash;
 	globalSalt = b64_decode(salt, 8);
@@ -122,5 +127,7 @@ void crackCode(const char *hash, const char *salt, char *code, char *error){
 	for(int i = 0; i < cores; i++){
 		pthread_join(thread[i], NULL);
 	}
-	printf("Code note found. Verify that you have entered the correct hash and salt\n");
+	gettimeofday(&end, NULL);
+	double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
+	printf("Code note found. Verify that you have entered the correct hash and salt\nTook %.2f seconds\n", delta);
 }
