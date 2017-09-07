@@ -21,7 +21,7 @@ Ex (will yield a code of 1):
 
 `./restrictions-crack "M/p4734c8/SOXZnGgZot+BciAW0=" "aSbUXg=="`
 
-## ToDo
+## Todo
 - Clean up memory when it is no longer needed
 - Add error checking and input validation
 - Create threads more quickly to improve performance (multi-thread thread creation?)
