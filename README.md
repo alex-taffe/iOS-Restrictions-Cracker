@@ -23,6 +23,7 @@ Ex (will yield a code of 3956):
 
 ## Todo
 - Clean up memory when it is no longer needed
+- Add apt package
 - Add error checking and input validation
 - Create threads more quickly to improve performance (multi-thread thread creation?)
 - <s>Add timer to program to measure performance</s>
