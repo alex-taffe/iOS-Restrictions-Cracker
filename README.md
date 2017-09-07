@@ -5,9 +5,9 @@ This program is designed to crack iOS 7-11 restrictions passcode as quickly as p
 apt package coming soon
 
 ## Compile from source
-Make sure that gcc, make, openssl and openssl-dev are installed on the machine
+Make sure that gcc (4.7 or newer), make, openssl and openssl-dev are installed on the machine
 
-  `sudo apt-get install gcc make openssl openssl-dev`
+  `sudo apt install gcc make openssl openssl-dev`
   
 To compile run 
   `make`
