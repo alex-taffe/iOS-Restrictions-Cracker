@@ -11,3 +11,12 @@ Make sure that gcc, make, openssl and openssl-dev are installed on the machine
   
 To compile run 
   `make`
+
+## Usage
+To crack, simply enter
+
+`restrictions-crack <hash> <salt>`
+
+Ex (will yield a code of 1):
+
+`./restrictions-crack "M/p4734c8/SOXZnGgZot+BciAW0=" "aSbUXg=="`
