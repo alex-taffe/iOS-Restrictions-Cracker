@@ -29,5 +29,5 @@ Ex (will yield a code of 1):
 - <s>End all threads immediately</s>
 - Improve algorithm efficiency
 - Improve code documentation and commenting
-- Remove debug flags from production build files
-- Add -O3 flag to gcc for production builds to speed up execution
+- <s>Remove debug flags from production build files</s>
+- <s>Add -O3 flag to gcc for production builds to speed up execution</s>
