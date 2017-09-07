@@ -7,7 +7,7 @@ apt package coming soon
 ## Compile from source
 Make sure that gcc, make, openssl and openssl-dev are installed on the machine
 
-  `sudo apt-get install openssl openssl-dev`
+  `sudo apt-get install gcc make openssl openssl-dev`
   
 To compile run 
   `make`
