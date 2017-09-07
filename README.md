@@ -17,9 +17,9 @@ To crack, simply enter
 
 `restrictions-crack <hash> <salt>`
 
-Ex (will yield a code of 1):
+Ex (will yield a code of 3956):
 
-`./restrictions-crack "M/p4734c8/SOXZnGgZot+BciAW0=" "aSbUXg=="`
+`./restrictions-crack "J94ZcXHm1J/F9Vye8GwNh1HNclA=" "/RHN4A=="`
 
 ## Todo
 - Clean up memory when it is no longer needed
