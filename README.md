@@ -25,7 +25,7 @@ Ex (will yield a code of 1):
 - Clean up memory when it is no longer needed
 - Add error checking and input validation
 - Create threads more quickly to improve performance (multi-thread thread creation?)
-- Add timer to program to measure performance
-- End all threads immediately 
+- <s>Add timer to program to measure performance</s>
+- <s>End all threads immediately</s>
 - Improve algorithm efficiency
 - Improve code documentation and commenting
