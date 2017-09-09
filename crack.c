@@ -19,6 +19,9 @@
 #include "b64.h"
 #include "fastpbkdf2.h"
 
+#define MAX_PASSCODE 9999.0
+#define OUTPUT_LENGTH 20
+
 long cores;
 struct s_threadId {
     pthread_mutex_t   mtx;    /* mutex & condition to allow main thread to
@@ -49,28 +52,25 @@ void* crackSection(void* arg){
     
     /* ..then unlock when we're done. */
     pthread_mutex_unlock(&thId->mtx);
-    
-    
-    char *passcode = (char*)malloc(5 * sizeof(char));
-    
-    int i = thId->numThread;
+   
+    int threadNumber = thId->numThread;
     
     int bottom = 0;
-    if(i != 0)
-        bottom = (ceil(9999.0 / cores) * (i));
-    int top = (ceil(9999.0 / cores) * (i + 1)) - 1;
+    if(threadNumber != 0)
+        bottom = (ceil(MAX_PASSCODE / cores) * (threadNumber));
+    int top = (ceil(MAX_PASSCODE / cores) * (threadNumber + 1)) - 1;
     
-    uint8_t out[20];
+    uint8_t out[OUTPUT_LENGTH];
+    char *b64;
+    char *passcode = (char*)malloc(5 * sizeof(char));
     
-    
-    
-    for (int j = bottom; j <= top; j++) {
+    for (int i = bottom; i <= top; i++) {
         
-        sprintf(passcode, "%04i", j);
+        sprintf(passcode, "%04i", i);
         
-        fastpbkdf2_hmac_sha1(passcode, strlen(passcode), globalSalt, strlen(globalSalt), 1000, out, 20);
+        fastpbkdf2_hmac_sha1(passcode, 4, globalSalt, 4, 1000, out, OUTPUT_LENGTH);
         
-        char *b64 = b64_encode(out, 20);
+        b64 = b64_encode(out, OUTPUT_LENGTH);
         
         if(strcmp(globalHash, b64) == 0){
             gettimeofday(&end, NULL);

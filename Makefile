@@ -1,5 +1,5 @@
 restrictions-crack: main.o encode.o decode.o crack.o fastpbkdf2.o
-	gcc -pthread -O3 -s -o restrictions-crack main.o encode.o decode.o crack.o fastpbkdf2.o -lssl -lcrypto -lm -std=c11
+	gcc -pthread -Ofast -s -o restrictions-crack main.o encode.o decode.o crack.o fastpbkdf2.o -lssl -lcrypto -lm -std=c11
 
 restrictions-crack-test: main.o encode.o decode.o crack.o fastpbkdf2.o
 	gcc -pthread -g -o restrictions-crack main.o encode.o decode.o crack.o fastpbkdf2.o -lssl -lcrypto -lm -std=c11
