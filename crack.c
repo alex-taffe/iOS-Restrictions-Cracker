@@ -129,5 +129,5 @@ void crackCode(const char *hash, const char *salt, char *code, char *error){
     }
     gettimeofday(&end, NULL);
     double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
-    printf("Code note found. Verify that you have entered the correct hash and salt\nTook %.2f seconds\n", delta);
+    printf("Code not found. Verify that you have entered the correct hash and salt\nTook %.2f seconds\n", delta);
 }
