@@ -1,7 +1,7 @@
-FROM ubuntu
+FROM alpine
 
 ADD . .
-RUN apt update
-RUN apt install -y gcc make openssl libssl-dev
+RUN apk update
+RUN apk add gcc make openssl libressl-dev musl-dev
 RUN make
 ENTRYPOINT ./restrictions-crack "$hash" "$salt"
