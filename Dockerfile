@@ -1,4 +1,4 @@
-FROM debian:jessie-slim
+FROM philcryer/min-wheezy:latest
 
 ADD . .
 RUN apt-get update
