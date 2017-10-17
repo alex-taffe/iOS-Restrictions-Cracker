@@ -1,8 +1,8 @@
-FROM debian:jessie-slim
+FROM alpine
 
 ADD . .
-RUN apt-get update
-RUN apt-get install -y gcc make openssl libssl-dev
+RUN apk update
+RUN apk add gcc make openssl libressl-dev musl-dev
 RUN make
 
 ENTRYPOINT ./restrictions-crack "$hash" "$salt"
