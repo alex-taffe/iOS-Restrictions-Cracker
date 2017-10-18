@@ -53,3 +53,5 @@ dkms.conf
 
 restrictions-crack
 restrictions-crack-test
+*.swo
+*.swp
