@@ -26,7 +26,7 @@ Ex (will yield a code of 3956):
 2) Clone this repository
 3) `cd` into the repository
 4) run `docker build -t restrictions .`
-5) run `docker run restrictions -e salt=SALT -e hash=HASH`
+5) run `docker run -e hash=HASH -e salt=SALT restrictions` replacing HASH and SALT with your input
 
 
 ## Todo
