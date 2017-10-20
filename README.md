@@ -21,6 +21,14 @@ Ex (will yield a code of 3956):
 
 `./restrictions-crack "J94ZcXHm1J/F9Vye8GwNh1HNclA=" "/RHN4A=="`
 
+## Usage with Docker
+1) Install Docker from docker.com
+2) Clone this repository
+3) `cd` into the repository
+4) run `docker build -t restrictions .`
+5) run `docker run restrictions`
+
+
 ## Todo
 - Clean up memory when it is no longer needed
 - Add apt package
