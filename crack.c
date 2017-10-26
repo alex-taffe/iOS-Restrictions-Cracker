@@ -76,6 +76,9 @@ void* crackSection(void* arg){
             gettimeofday(&end, NULL);
             double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
             printf("The code is: %s\nCalculated in %.2f seconds\n", passcode, delta);
+			
+			free(passcode);
+
             exit(0);
         }
     }
