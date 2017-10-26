@@ -28,7 +28,7 @@ Ex (will yield a code of 3956):
 4) Run `docker build -t restrictions .`
 5) Run `docker run -e hash=HASH -e salt=SALT restrictions` replacing HASH and SALT with your input
 	a) To run the program using the hash and salt listed above run: 
-	   'docker run -e hash="J94ZcXHm1J/F9Vye8GwNh1HNclA=" -e salt="/RHN4A==" restrictions'
+	   `docker run -e hash="J94ZcXHm1J/F9Vye8GwNh1HNclA=" -e salt="/RHN4A==" restrictions`
 
 
 ## Todo
