@@ -27,7 +27,8 @@ Ex (will yield a code of 3956):
 3) `cd` into the repository
 4) Run `docker build -t restrictions .`
 5) Run `docker run -e hash=HASH -e salt=SALT restrictions` replacing HASH and SALT with your input  
-6) To run the program using the hash and salt listed above (will yield a code of 3956):  
+
+Alternatively, to run the program using the hash and salt listed above in the Usage section (will yield a code of 3956):  
 `docker run -e hash="J94ZcXHm1J/F9Vye8GwNh1HNclA=" -e salt="/RHN4A==" restrictions`
 
 
