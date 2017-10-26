@@ -78,7 +78,6 @@ void* crackSection(void* arg){
             printf("The code is: %s\nCalculated in %.2f seconds\n", passcode, delta);
 			
 			free(passcode);
-
             exit(0);
         }
     }
