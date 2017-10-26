@@ -10,13 +10,13 @@
 #include <stdlib.h>
 #include "crack.h"
 
-int main(int argc, const char * argv[]){
+int main(int argc, char * argv[]){
 	if(argc != 3){
 		printf("Incorrect number of arguments not provided. Usage: restrictions-crack <hash> <salt>\n");
 		exit(1);
 	}
-	const char *hash = argv[1];
-	const char *salt = argv[2];
+	char *hash = argv[1];
+	char *salt = argv[2];
 
 	crackCode(hash, salt, NULL, NULL);
 
