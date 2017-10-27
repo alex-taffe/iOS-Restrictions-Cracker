@@ -16,6 +16,7 @@
 #include <math.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <assert.h>
 #include "b64.h"
 #include "fastpbkdf2.h"
 
@@ -63,6 +64,7 @@ void* crackSection(void* arg){
     uint8_t out[OUTPUT_LENGTH];
     char *b64;
     char *passcode = (char*)malloc(5 * sizeof(char));
+    assert(passcode != NULL);
     
     for (int i = bottom; i <= top; i++) {
         
