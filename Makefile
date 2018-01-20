@@ -20,5 +20,5 @@ fastpbkdf2.o: fastpbkdf2.c fastpbkdf2.h
 	gcc -c -g fastpbkdf2.c -std=c11
 
 clean:
-	rm -f *.o restrictions-cracker
+	rm -f *.o restrictions-crack
 	
