@@ -18,6 +18,6 @@ int main(int argc, char * argv[]){
 	char *hash = argv[1];
 	char *salt = argv[2];
 
-	crackCode(hash, salt, NULL, NULL);
+	crackCode(hash, salt, NULL);
 
 }

@@ -8,4 +8,4 @@
 
 //hash must be 40
 //salt must be 8
-void crackCode(char *hash, char *salt, char *code, char *error);
+void crackCode(char *hash, char *salt, char *error);
