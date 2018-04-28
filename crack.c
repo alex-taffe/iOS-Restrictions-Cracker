@@ -86,7 +86,7 @@ void* crackSection(void* arg){
 
 }
 
-void crackCode(const char *hash, const char *salt, char *code, char *error){
+void crackCode(const char *hash, const char *salt, char *error){
     gettimeofday(&start, NULL);
 
     globalHash = hash;
