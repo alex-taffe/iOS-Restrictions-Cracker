@@ -1,6 +1,5 @@
 /// \file table.h
 /// \brief A generic hash table data structure.
-/// Author: Sean Strout (RIT CS)
 
 #ifndef TABLE_H
 #define TABLE_H

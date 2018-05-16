@@ -19,6 +19,7 @@
 #include <assert.h>
 #include "b64.h"
 #include "fastpbkdf2.h"
+#include "table.h"
 
 #define MAX_PASSCODE 9999.0
 #define OUTPUT_LENGTH 20
@@ -34,8 +35,52 @@ struct s_threadId {
     int               numThread; /* used to hold the number of the thread */
 };
 
-const char *globalHash;
-char *globalSalt;
+typedef struct{
+    char *hash;
+    char *salt;
+}HashItem;
+
+/// Hash function for Song's.  Uses a simple hashing formula that sums
+/// the hash codes of the Song's artist plus the Song's names, using
+/// strHash from hash.h.
+/// @param element The Song
+/// @return The hash code for the Song
+long hashHash(void* element) {
+    HashItem *item = (HashItem *)element;
+
+    unsigned char *str = item->hash;
+    unsigned long hash = 5381;
+    int c;
+
+    while ((c = *str++)) {
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    }
+    return (long)hash;
+}
+
+/// Compare whether two Song's are equal.  They are equal if both the artist
+/// and the song are equal.
+/// @param element1 First song
+/// @param element2 Second song
+/// @return true if equal, false otherwise
+bool hashEquals(void* element1, void* element2) {
+    HashItem *item1 = (HashItem *)element1;
+    HashItem *item2 = (HashItem *)element2;
+
+    return strcmp(item1->hash, item2->hash) == 0 && strcmp(item1->salt, item2->salt) == 0;
+}
+
+/// Debug function for printing out a Song and it's number of plays.
+/// @param key The song
+/// @param value The play count (a long)
+void hashPrint(void* key, void* value){
+    //get the song and playcount
+    //Song *song = (Song *)key;
+  //  long playCount = (long )value;
+    //printf("%s by %s, %li times.\n", song->artist, song->song, playCount);
+}
+
+Table *cracks;
 struct timeval start, end;
 
 
@@ -66,31 +111,42 @@ void* crackSection(void* arg){
     char *passcode = (char*)malloc(5 * sizeof(char));
     assert(passcode != NULL);
 
-    for (int i = bottom; i <= top; i++) {
+    HashItem **hashes = (HashItem **)keys(cracks);
 
-        sprintf(passcode, "%04i", i);
+    for(int i = 0; i < cracks->size; i++){
+        HashItem *itemToCrack = hashes[i];
 
-        fastpbkdf2_hmac_sha1(passcode, 4, globalSalt, 4, 1000, out, OUTPUT_LENGTH);
+        for (int j = bottom; j <= top; j++) {
 
-        b64 = b64_encode(out, OUTPUT_LENGTH);
+            sprintf(passcode, "%04i", j);
 
-        if(strcmp(globalHash, b64) == 0){
-            gettimeofday(&end, NULL);
-            double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
-            printf("The code is: %s\nCalculated in %.2f seconds\n", passcode, delta);
+            fastpbkdf2_hmac_sha1(passcode, 4, itemToCrack->salt, 4, 1000, out, OUTPUT_LENGTH);
 
-            free(passcode);
-            exit(0);
+            b64 = b64_encode(out, OUTPUT_LENGTH);
+
+            if(strcmp(itemToCrack->hash, b64) == 0){
+                put(cracks, hashes, strdup(passcode));
+            }
         }
+
     }
 
 }
 
-void crackCode(const char *hash, const char *salt, char *error){
+void crackCode(char **hashes, char **salts, char *error){
     gettimeofday(&start, NULL);
 
-    globalHash = hash;
-    globalSalt = b64_decode(salt, 8);
+
+    cracks = create(hashHash, hashEquals, hashPrint);
+
+    size_t toCrack = sizeof(hashes) / sizeof(char *);
+
+    for(size_t i; i < toCrack; i++){
+        HashItem *item = malloc(sizeof(HashItem));
+        item->hash = strdup(hashes[i]);
+        item->salt = b64_decode(salts[i], 8);
+        put(cracks, item, NULL);
+    }
 
     cores = sysconf(_SC_NPROCESSORS_ONLN);
     printf("Cracking passcode with %li threads\n", cores);
@@ -134,4 +190,9 @@ void crackCode(const char *hash, const char *salt, char *error){
     gettimeofday(&end, NULL);
     double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
     printf("Code not found. Verify that you have entered the correct hash and salt\nTook %.2f seconds\n", delta);
+}
+
+
+void crack_codes(Table *codes){
+
 }
