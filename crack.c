@@ -19,7 +19,7 @@
 #include <assert.h>
 #include "b64.h"
 #include "fastpbkdf2.h"
-#include "table.h"
+#include "hashtable.h"
 
 #define MAX_PASSCODE 9999.0
 #define OUTPUT_LENGTH 20
@@ -40,47 +40,8 @@ typedef struct{
     char *salt;
 }HashItem;
 
-/// Hash function for Song's.  Uses a simple hashing formula that sums
-/// the hash codes of the Song's artist plus the Song's names, using
-/// strHash from hash.h.
-/// @param element The Song
-/// @return The hash code for the Song
-long hashHash(void* element) {
-    HashItem *item = (HashItem *)element;
 
-    unsigned char *str = item->hash;
-    unsigned long hash = 5381;
-    int c;
-
-    while ((c = *str++)) {
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-    }
-    return (long)hash;
-}
-
-/// Compare whether two Song's are equal.  They are equal if both the artist
-/// and the song are equal.
-/// @param element1 First song
-/// @param element2 Second song
-/// @return true if equal, false otherwise
-bool hashEquals(void* element1, void* element2) {
-    HashItem *item1 = (HashItem *)element1;
-    HashItem *item2 = (HashItem *)element2;
-
-    return strcmp(item1->hash, item2->hash) == 0 && strcmp(item1->salt, item2->salt) == 0;
-}
-
-/// Debug function for printing out a Song and it's number of plays.
-/// @param key The song
-/// @param value The play count (a long)
-void hashPrint(void* key, void* value){
-    //get the song and playcount
-    //Song *song = (Song *)key;
-  //  long playCount = (long )value;
-    //printf("%s by %s, %li times.\n", song->artist, song->song, playCount);
-}
-
-Table *cracks;
+hashtable_t *cracks;
 struct timeval start, end;
 
 
@@ -111,10 +72,10 @@ void* crackSection(void* arg){
     char *passcode = (char*)malloc(5 * sizeof(char));
     assert(passcode != NULL);
 
-    HashItem **hashes = (HashItem **)keys(cracks);
+    linked_list_t *hashes = ht_get_all_keys(cracks);
 
-    for(int i = 0; i < cracks->size; i++){
-        HashItem *itemToCrack = hashes[i];
+    for(int i = 0; i < ht_count(cracks); i++){
+        HashItem *itemToCrack = list_pop_value(hashes);
 
         for (int j = bottom; j <= top; j++) {
 
@@ -125,7 +86,7 @@ void* crackSection(void* arg){
             b64 = b64_encode(out, OUTPUT_LENGTH);
 
             if(strcmp(itemToCrack->hash, b64) == 0){
-                put(cracks, hashes, strdup(passcode));
+                ht_set(cracks, itemToCrack, sizeof(HashItem), strdup(passcode), strlen(passcode) + 1);
             }
         }
 
@@ -137,7 +98,7 @@ void crackCode(char **hashes, char **salts, char *error){
     gettimeofday(&start, NULL);
 
 
-    cracks = create(hashHash, hashEquals, hashPrint);
+    cracks = ht_create(0, SIZE_MAX, NULL);
 
     size_t toCrack = sizeof(hashes) / sizeof(char *);
 
@@ -145,7 +106,8 @@ void crackCode(char **hashes, char **salts, char *error){
         HashItem *item = malloc(sizeof(HashItem));
         item->hash = strdup(hashes[i]);
         item->salt = b64_decode(salts[i], 8);
-        put(cracks, item, NULL);
+
+        ht_set(cracks, item, sizeof(HashItem) - 1, NULL, sizeof(NULL));
     }
 
     cores = sysconf(_SC_NPROCESSORS_ONLN);
@@ -190,9 +152,4 @@ void crackCode(char **hashes, char **salts, char *error){
     gettimeofday(&end, NULL);
     double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
     printf("Code not found. Verify that you have entered the correct hash and salt\nTook %.2f seconds\n", delta);
-}
-
-
-void crack_codes(Table *codes){
-
 }
