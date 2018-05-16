@@ -18,6 +18,12 @@ int main(int argc, char * argv[]){
 	char *hash = argv[1];
 	char *salt = argv[2];
 
-	crackCode(hash, salt, NULL);
+	char **hashes = (char **)malloc(sizeof(char *));
+	char **salts = (char **)malloc(sizeof(char *));
+
+	hashes[0] = hash;
+	salts[0] = salt;
+
+	crackCode(hashes, salts, NULL);
 
 }
