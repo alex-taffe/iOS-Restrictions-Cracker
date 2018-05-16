@@ -5,7 +5,7 @@ This program is designed to crack iOS 7-11 restrictions passcode as quickly as p
 apt package coming soon
 
 ## Compile from source
-Make sure that gcc (4.7 or newer), make, openssl and openssl-dev are installed on the machine
+Make sure that gcc (4.7 or newer), make, openssl and openssl-dev are installed on the machine (Linux only, macOS see [Docker](#Usage-with-Docker). This will be fixed in future builds)
 
   `sudo apt install gcc make openssl libssl-dev`
   
@@ -46,3 +46,7 @@ Alternatively, to run the program using the hash and salt listed above in the Us
 - Add make install action
 - Add configure script
 - Add automake support
+- Add better support for macOS (OpenSSL libraries not preinstalled, use Apple's Crypto library)
+- Add support on macOS to auto extract data from iOS backups
+- Add the ability to read codes in from a file
+- Add a premade list of codes for benchmarking purposes
