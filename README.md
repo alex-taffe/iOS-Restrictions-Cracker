@@ -53,6 +53,16 @@ Alternatively, to run the program using the hash and salt listed above in the Us
   
 5) Plug the retrieved values into the program
 
+## Performance
+
+Code | CPU                 | This Program  | Javascript Website  |
+ --- | ------------------- | -------------:| -------------------:|
+0001 | Intel Core i7 7700k | 00:00:00.00   | 00:00:01.13         |
+1024 | Intel Core i7 7700k | 00:00:00.35   | 00:02:15.96         |
+3956 | Intel Core i7 7700k | 00:00:00.06   | 00:07:26.92         |
+
+The website compared against: https://ios7hash.derson.us (Nothing against the site, javascript is just very slow). The website is single threaded and as such, the higher the code, the longer it takes to find. As a result, for small codes (under 50), the speed difference is negligible, but for larger codes, especially approaching the upper limit of the keyspace, the difference is multiple orders of magnitude faster.
+
 ## Todo
 - Clean up memory when it is no longer needed
 - Add apt package
