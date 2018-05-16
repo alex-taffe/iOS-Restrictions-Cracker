@@ -31,6 +31,27 @@ Ex (will yield a code of 3956):
 Alternatively, to run the program using the hash and salt listed above in the Usage section (will yield a code of 3956):  
 `docker run -e hash="J94ZcXHm1J/F9Vye8GwNh1HNclA=" -e salt="/RHN4A==" restrictions`
 
+## To Find Your Restrictions Hash and Salt
+1) Create a non encrypted iPhone backup in iTunes
+2) On macOS navigate to `~/Library/Application Support/MobileSync/Backup/YOUR_DEVICE_UDID` or on Windows `%AppData%\Apple Computer\MobileSync\Backup\YOUR_DEVICE_UDID`.
+3) Search the folder for a file called `398bc9c2aeeab4cb0c12ada0f52eea12cf14f40b`
+4) Open the folder in a text editor. In the file you will find a section that looks like:
+
+ ```
+  <dict>
+       <key>RestrictionsPasswordKey</key>
+       <data>
+       M/p4734c8/SOXZnGgZot+BciAW0=
+       </data>
+       <key>RestrictionsPasswordSalt</key>
+       <data>
+       aSbUXg==
+       </data>
+  </dict>
+  ```
+  In this example, the hash would be `M/p4734c8/SOXZnGgZot+BciAW0=` and the salt `aSbUXg==`
+  
+5) Plug the retrieved values into the program
 
 ## Todo
 - Clean up memory when it is no longer needed
@@ -49,4 +70,6 @@ Alternatively, to run the program using the hash and salt listed above in the Us
 - Add better support for macOS (OpenSSL libraries not preinstalled, use Apple's Crypto library)
 - Add support on macOS to auto extract data from iOS backups
 - Add the ability to read codes in from a file
-- Add a premade list of codes for benchmarking purposes
+- <s>Add a</s> Improve the premade list of codes for benchmarking purposes
+- Add unit tests
+- Compile a list of benchmarks on various systems
