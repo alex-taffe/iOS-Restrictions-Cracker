@@ -5,10 +5,10 @@ restrictions-crack-test: main.o encode.o decode.o crack.o fastpbkdf2.o hashtable
 	gcc -pthread -g -o restrictions-crack main.o encode.o decode.o crack.o fastpbkdf2.o hashtable.o linklist.o -lssl -lcrypto -lm -std=c11
 
 main.o:	main.c
-	gcc -c -g main.c -std=c11
+	gcc -c -g main.c -std=c11 -Wall -Wextra -pedantic
 
 crack.o: crack.c crack.h
-	gcc -c -g crack.c -std=c11
+	gcc -c -g crack.c -std=c11 -Wall -Wextra -pedantic
 
 encode.o: encode.c b64.h
 	gcc -c -g encode.c -std=c11
