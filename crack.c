@@ -42,6 +42,10 @@ typedef struct{
 
 
 hashtable_t *cracks;
+HashItem **itemsToCrack;
+
+size_t toCrack;
+
 struct timeval start, end;
 
 
@@ -72,12 +76,11 @@ void* crackSection(void* arg){
     char *passcode = (char*)malloc(5 * sizeof(char));
     assert(passcode != NULL);
 
-    linked_list_t *hashes = ht_get_all_keys(cracks);
 
-    for(int i = 0; i < ht_count(cracks); i++){
-        HashItem *itemToCrack = list_pop_value(hashes);
+    for(int i = 0; i < toCrack; i++){
 
-        for (int j = bottom; j <= top; j++) {
+        HashItem *itemToCrack = itemsToCrack[i];
+        for (int j = bottom; j <= top && ht_get(cracks, itemToCrack, sizeof(HashItem), NULL) == NULL; j++) {
 
             sprintf(passcode, "%04i", j);
 
@@ -91,7 +94,7 @@ void* crackSection(void* arg){
         }
 
     }
-
+    pthread_exit(NULL);
 }
 
 void crackCode(char **hashes, char **salts, char *error){
@@ -100,14 +103,16 @@ void crackCode(char **hashes, char **salts, char *error){
 
     cracks = ht_create(0, SIZE_MAX, NULL);
 
-    size_t toCrack = sizeof(hashes) / sizeof(char *);
+    toCrack = sizeof(hashes) / sizeof(char *);
 
-    for(size_t i; i < toCrack; i++){
+    itemsToCrack = malloc(sizeof(HashItem) * toCrack);
+
+    for(size_t i = 0; i < toCrack; i++){
         HashItem *item = malloc(sizeof(HashItem));
         item->hash = strdup(hashes[i]);
         item->salt = b64_decode(salts[i], 8);
 
-        ht_set(cracks, item, sizeof(HashItem) - 1, NULL, sizeof(NULL));
+        itemsToCrack[i] = item;
     }
 
     cores = sysconf(_SC_NPROCESSORS_ONLN);
@@ -149,7 +154,19 @@ void crackCode(char **hashes, char **salts, char *error){
     for(int i = 0; i < cores; i++){
         pthread_join(thread[i], NULL);
     }
+
+
+    size_t numberFoundCodes = ht_count(cracks);
     gettimeofday(&end, NULL);
     double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
-    printf("Code not found. Verify that you have entered the correct hash and salt\nTook %.2f seconds\n", delta);
+
+    printf("Found %lu out of %lu codes\nTook %.2f seconds\nResults:\n\n", numberFoundCodes, toCrack, delta);
+
+    linked_list_t *allCodes = ht_get_all_keys(cracks);
+
+    for(size_t i = 0; i < numberFoundCodes; i++){
+        HashItem *item = ((hashtable_key_t*)list_pop_value(allCodes))->data;
+        char *value = ht_get(cracks, item, sizeof(HashItem), NULL);
+        printf("\tHash: %s, Result: %s\n", item->hash, value);
+    }
 }
