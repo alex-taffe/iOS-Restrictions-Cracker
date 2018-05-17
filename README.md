@@ -71,7 +71,7 @@ The website compared against: https://ios7hash.derson.us (Nothing against the si
 - <s>Add timer to program to measure performance</s>
 - <s>End all threads immediately</s>
 - Improve algorithm efficiency
-- Improve code documentation and commenting
+- <s>Improve code documentation and commenting</s>
 - <s>Remove debug flags from production build files</s>
 - <s>Add -O3 flag to gcc for production builds to speed up execution</s>
 - Add make install action
