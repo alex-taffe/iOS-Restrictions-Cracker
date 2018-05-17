@@ -83,6 +83,7 @@ void* crackSection(void* arg){
     uint8_t out[OUTPUT_LENGTH]; //holder for hmac_sha1 output
     char *passcode = (char*)malloc(5 * sizeof(char)); //used to store each passcode
     assert(passcode != NULL); //make sure our malloc worked
+    char *b64; //holder for our base 64 decode
 
     //the item we're going to crack each iteration
     HashItem *itemToCrack;
@@ -106,14 +107,23 @@ void* crackSection(void* arg){
             //hash that code with the designated salt
             fastpbkdf2_hmac_sha1((unsigned char *)passcode, 4, salt, 4, 1000, out, OUTPUT_LENGTH);
 
+            //get our base64 representation of the base
+            b64 = b64_encode(out, OUTPUT_LENGTH);
+
             //see if our code matches
-            if(strcmp(hash, b64_encode(out, OUTPUT_LENGTH)) == 0){
+            if(strcmp(hash, b64) == 0){
                 //it does, so add it as completed to the hashmap
                 ht_set(crackedItems, itemToCrack, sizeof(HashItem), strdup(passcode), strlen(passcode) + 1);
             }
+
+            //free out the pointer so we don't lose it
+            free(b64);
         }
 
     }
+
+    //we're done with the passcode variable
+    free(passcode);
 
     //we're done, exit the thread
     pthread_exit(NULL);
@@ -121,8 +131,8 @@ void* crackSection(void* arg){
 
 /**
  * @brief Attempts to crack a list of codes passed in
- * @param hashes : An array of pointers of the hashes to be cracked
- * @param salts  : An array of pointers of the salts to be cracked
+ * @param hashes : An array of pointers of the hashes to be cracked (calling function is responsible for freeing)
+ * @param salts  : An array of pointers of the salts to be cracked (calling function is responsible for freeing)
  */
 void crackCodes(char **hashes, char **salts){
     //get the current time of the day so we can time program execution
@@ -199,11 +209,29 @@ void crackCodes(char **hashes, char **salts){
 
     //loop over all the codes we found and print them out
     for(size_t i = 0; i < numberFoundCodes; i++){
-        HashItem *item = ((hashtable_key_t*)list_pop_value(allCodes))->data;
+        hashtable_key_t *key = (hashtable_key_t*)list_pop_value(allCodes);
+        HashItem *item = key->data;
         char *value = ht_get(crackedItems, item, sizeof(HashItem), NULL);
         printf("\tHash: %s, Result: %s\n", item->hash, value);
+
+        //clean up the code
+        free(value);
+        //clean up the key
+        free(key->data);
+        free(key);
     }
 
+
+    //clean up all our items to crack
+    for(size_t i = 0; i < numItemsToCrack; i++){
+        free(itemsToCrack[i]->hash);
+        free(itemsToCrack[i]->salt);
+        free(itemsToCrack[i]);
+    }
+
+    free(itemsToCrack);
+
     //clean up memory
+    list_destroy(allCodes); //destroy our list of keys
     ht_destroy(crackedItems); //destroy the hash table
 }
