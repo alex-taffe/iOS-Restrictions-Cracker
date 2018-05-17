@@ -38,7 +38,7 @@ struct s_threadId {
 //representation of a code to be cracked
 typedef struct{
     char *hash;
-    char *salt;
+    unsigned char *salt;
 }HashItem;
 
 long numCores; //number of logical (including hyper threaded) cores in the system
@@ -87,7 +87,7 @@ void* crackSection(void* arg){
     //the item we're going to crack each iteration
     HashItem *itemToCrack;
 
-    for(int i = 0; i < numItemsToCrack; i++){
+    for(size_t i = 0; i < numItemsToCrack; i++){
 
         //get the item we're going to crack
         itemToCrack = itemsToCrack[i];
@@ -96,7 +96,7 @@ void* crackSection(void* arg){
         char *hash = itemToCrack->hash;
 
         //the salt for this item (used to reduce memory dereferences)
-        char *salt = itemToCrack->salt;
+        unsigned char *salt = itemToCrack->salt;
 
         //loop within our range of items to crack. Also see if this code has already been found
         for (int j = bottom; j <= top && ht_get(crackedItems, itemToCrack, sizeof(HashItem), NULL) == NULL; j++) {
@@ -104,7 +104,7 @@ void* crackSection(void* arg){
             sprintf(passcode, "%04i", j);
 
             //hash that code with the designated salt
-            fastpbkdf2_hmac_sha1(passcode, 4, salt, 4, 1000, out, OUTPUT_LENGTH);
+            fastpbkdf2_hmac_sha1((unsigned char *)passcode, 4, salt, 4, 1000, out, OUTPUT_LENGTH);
 
             //see if our code matches
             if(strcmp(hash, b64_encode(out, OUTPUT_LENGTH)) == 0){
