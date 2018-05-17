@@ -26,4 +26,6 @@ int main(int argc, char * argv[]){
 
 	crackCodes(hashes, salts);
 
+	free(hashes);
+	free(salts);
 }
