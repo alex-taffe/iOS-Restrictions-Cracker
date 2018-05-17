@@ -24,7 +24,7 @@
 #define MAX_PASSCODE 9999.0
 #define OUTPUT_LENGTH 20
 
-long cores;
+//helps with threading
 struct s_threadId {
     pthread_mutex_t   mtx;    /* mutex & condition to allow main thread to
                                wait for the new thread to  set its TID */
@@ -35,20 +35,27 @@ struct s_threadId {
     int               numThread; /* used to hold the number of the thread */
 };
 
+//representation of a code to be cracked
 typedef struct{
     char *hash;
     char *salt;
 }HashItem;
 
-
-hashtable_t *cracks;
-HashItem **itemsToCrack;
-
-size_t toCrack;
-
+long numCores; //number of logical (including hyper threaded) cores in the system
 struct timeval start, end;
 
+hashtable_t *crackedItems; //already cracked items
+HashItem **itemsToCrack; //items we still need to crack
+size_t numItemsToCrack; //how many items there are to be cracked
 
+
+
+/**
+ * @brief Attempts to crack a section of a code. For example, on a 10 core system
+ *        on thread 0, we will try codes 0000-0999
+ * @param arg : A pointer to a s_threadId instance
+ * @return NULL
+ */
 void* crackSection(void* arg){
     struct s_threadId *thId = arg;
 
@@ -64,50 +71,75 @@ void* crackSection(void* arg){
     /* ..then unlock when we're done. */
     pthread_mutex_unlock(&thId->mtx);
 
+    //see what thread we are
     int threadNumber = thId->numThread;
 
+    //get the range of codes we're going to try cracking on this thread
     int bottom = 0;
     if(threadNumber != 0)
-        bottom = (ceil(MAX_PASSCODE / cores) * (threadNumber));
-    int top = (ceil(MAX_PASSCODE / cores) * (threadNumber + 1)) - 1;
+        bottom = (ceil(MAX_PASSCODE / numCores) * (threadNumber));
+    int top = (ceil(MAX_PASSCODE / numCores) * (threadNumber + 1)) - 1;
 
-    uint8_t out[OUTPUT_LENGTH];
-    char *b64;
-    char *passcode = (char*)malloc(5 * sizeof(char));
-    assert(passcode != NULL);
+    uint8_t out[OUTPUT_LENGTH]; //holder for hmac_sha1 output
+    char *passcode = (char*)malloc(5 * sizeof(char)); //used to store each passcode
+    assert(passcode != NULL); //make sure our malloc worked
 
+    //the item we're going to crack each iteration
+    HashItem *itemToCrack;
 
-    for(int i = 0; i < toCrack; i++){
+    for(int i = 0; i < numItemsToCrack; i++){
 
-        HashItem *itemToCrack = itemsToCrack[i];
-        for (int j = bottom; j <= top && ht_get(cracks, itemToCrack, sizeof(HashItem), NULL) == NULL; j++) {
+        //get the item we're going to crack
+        itemToCrack = itemsToCrack[i];
 
+        //the hash for this item (used to reduce memory dereferences)
+        char *hash = itemToCrack->hash;
+
+        //the salt for this item (used to reduce memory dereferences)
+        char *salt = itemToCrack->salt;
+
+        //loop within our range of items to crack. Also see if this code has already been found
+        for (int j = bottom; j <= top && ht_get(crackedItems, itemToCrack, sizeof(HashItem), NULL) == NULL; j++) {
+            //get string representation of the code we need
             sprintf(passcode, "%04i", j);
 
-            fastpbkdf2_hmac_sha1(passcode, 4, itemToCrack->salt, 4, 1000, out, OUTPUT_LENGTH);
+            //hash that code with the designated salt
+            fastpbkdf2_hmac_sha1(passcode, 4, salt, 4, 1000, out, OUTPUT_LENGTH);
 
-            b64 = b64_encode(out, OUTPUT_LENGTH);
-
-            if(strcmp(itemToCrack->hash, b64) == 0){
-                ht_set(cracks, itemToCrack, sizeof(HashItem), strdup(passcode), strlen(passcode) + 1);
+            //see if our code matches
+            if(strcmp(hash, b64_encode(out, OUTPUT_LENGTH)) == 0){
+                //it does, so add it as completed to the hashmap
+                ht_set(crackedItems, itemToCrack, sizeof(HashItem), strdup(passcode), strlen(passcode) + 1);
             }
         }
 
     }
+
+    //we're done, exit the thread
     pthread_exit(NULL);
 }
 
-void crackCode(char **hashes, char **salts, char *error){
+/**
+ * @brief Attempts to crack a list of codes passed in
+ * @param hashes : An array of pointers of the hashes to be cracked
+ * @param salts  : An array of pointers of the salts to be cracked
+ */
+void crackCodes(char **hashes, char **salts){
+    //get the current time of the day so we can time program execution
     gettimeofday(&start, NULL);
 
+    //create a hash table for our results
+    crackedItems = ht_create(0, SIZE_MAX, NULL);
 
-    cracks = ht_create(0, SIZE_MAX, NULL);
+    //see how many items we actually need to crack
+    numItemsToCrack = sizeof(hashes) / sizeof(char *);
 
-    toCrack = sizeof(hashes) / sizeof(char *);
+    //create an array to hold the items we need to crack
+    itemsToCrack = malloc(sizeof(HashItem) * numItemsToCrack);
 
-    itemsToCrack = malloc(sizeof(HashItem) * toCrack);
-
-    for(size_t i = 0; i < toCrack; i++){
+    //loop over all the items we need to crack and create structs to represent them
+    //then add them to the array
+    for(size_t i = 0; i < numItemsToCrack; i++){
         HashItem *item = malloc(sizeof(HashItem));
         item->hash = strdup(hashes[i]);
         item->salt = b64_decode(salts[i], 8);
@@ -115,20 +147,19 @@ void crackCode(char **hashes, char **salts, char *error){
         itemsToCrack[i] = item;
     }
 
-    cores = sysconf(_SC_NPROCESSORS_ONLN);
-    printf("Cracking passcode with %li threads\n", cores);
+    //get the number of cores the system has
+    numCores = sysconf(_SC_NPROCESSORS_ONLN);
+    printf("Cracking passcode with %li threads\n", numCores);
 
-    pthread_t thread[cores]; /* reused for each thread, since they run 1 at a time */
+    pthread_t thread[numCores]; /* reused for each thread, since they run 1 at a time */
 
     /* struct to pass back TID */
     struct s_threadId threadId;
     pthread_cond_init(&threadId.cond, NULL);  /* init condition */
     pthread_mutex_init(&threadId.mtx, NULL);  /* init mutex */
 
-
-    int err;
-
-    for(int i = 0; i < cores; i++){
+    //create all our threads
+    for(int i = 0; i < numCores; i++){
         /* lock mutex *before* creating the thread, to make the new thread
          wait until we're ready before signaling us */
         pthread_mutex_lock(&threadId.mtx);
@@ -144,29 +175,35 @@ void crackCode(char **hashes, char **salts, char *error){
             while (!threadId.ready) {
                 pthread_cond_wait(&threadId.cond, &threadId.mtx);
             }
-            /* Now we have the TID... */
-            //printf("%d %d\n", i, threadId.id);
-            //printf("I just created thread %d\n", i);
         }
         /* ..and unlock the mutex when done. */
         pthread_mutex_unlock(&threadId.mtx);
     }
-    for(int i = 0; i < cores; i++){
+    //make sure the program doesn't end prematurely
+    for(int i = 0; i < numCores; i++){
         pthread_join(thread[i], NULL);
     }
 
+    //see how many codes we actually found
+    size_t numberFoundCodes = ht_count(crackedItems);
 
-    size_t numberFoundCodes = ht_count(cracks);
+    //get the end of the execution time
     gettimeofday(&end, NULL);
     double delta = ((end.tv_sec  - start.tv_sec) * 1000000u + end.tv_usec - start.tv_usec) / 1.e6;
 
-    printf("Found %lu out of %lu codes\nTook %.2f seconds\nResults:\n\n", numberFoundCodes, toCrack, delta);
+    //print out info
+    printf("Found %lu out of %lu codes\nTook %.2f seconds\nResults:\n\n", numberFoundCodes, numItemsToCrack, delta);
 
-    linked_list_t *allCodes = ht_get_all_keys(cracks);
+    //get all keys
+    linked_list_t *allCodes = ht_get_all_keys(crackedItems);
 
+    //loop over all the codes we found and print them out
     for(size_t i = 0; i < numberFoundCodes; i++){
         HashItem *item = ((hashtable_key_t*)list_pop_value(allCodes))->data;
-        char *value = ht_get(cracks, item, sizeof(HashItem), NULL);
+        char *value = ht_get(crackedItems, item, sizeof(HashItem), NULL);
         printf("\tHash: %s, Result: %s\n", item->hash, value);
     }
+
+    //clean up memory
+    ht_destroy(crackedItems); //destroy the hash table
 }

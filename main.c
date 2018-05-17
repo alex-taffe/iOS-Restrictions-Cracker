@@ -24,6 +24,6 @@ int main(int argc, char * argv[]){
 	hashes[0] = hash;
 	salts[0] = salt;
 
-	crackCode(hashes, salts, NULL);
+	crackCodes(hashes, salts);
 
 }
