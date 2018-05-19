@@ -1,5 +1,5 @@
 # iOS-Restrictions-Cracker-Linux
-This program is designed to crack iOS 7-11 restrictions passcode as quickly as possible. It can use an unlimited number of threads to complete this process.
+This program is designed to crack iOS 7-11 restrictions passcodes as quickly as possible. It can use an unlimited number of threads to complete this process.
 
 ## Install
 apt package coming soon
